@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Dubai ROI Multi-Compare</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --accent: #2563eb;
+      --accent-light: #eff4ff;
+      --green: #16a34a;
+      --green-bg: #f0fdf4;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --orange: #ea580c;
+      --orange-bg: #fff7ed;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-lg: 0 4px 12px rgba(0,0,0,.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 0 100px;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+      color: #fff;
+      padding: 20px 16px 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(37,99,235,.3);
+    }
+    .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .header .subtitle {
+      font-size: 11px;
+      opacity: .8;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ── Tabs bar ── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      padding: 12px 16px 0;
+      position: sticky;
+      top: 62px;
+      z-index: 99;
+      background: var(--bg);
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    /* ── Action bar ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+      padding: 10px 16px;
+      background: var(--bg);
+    }
+    .btn {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all .15s ease;
+      -webkit-tap-highlight-color: transparent;
+      text-align: center;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37,99,235,.3);
+    }
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-green {
+      background: var(--green);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(22,163,74,.25);
+    }
+    .btn-danger {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid #fecaca;
+      font-size: 13px;
+      padding: 10px 14px;
+      flex: none;
+    }
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+      flex: none;
+    }
+
+    /* ── Alert ── */
+    .alert {
+      margin: 0 16px 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+    }
+    .alert-warn {
+      background: var(--orange-bg);
+      color: var(--orange);
+      border: 1px solid #fed7aa;
+    }
+
+    /* ── Import banner ── */
+    .import-banner {
+      margin: 0 16px 12px;
+      padding: 16px;
+      border-radius: 14px;
+      background: var(--accent-light);
+      border: 1.5px solid #bfdbfe;
+      display: none;
+    }
+    .import-banner h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+    .import-banner p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .import-banner .import-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1e293b;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transition: all .3s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 20px rgba(0,0,0,.25);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Cards grid ── */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 0 16px;
+    }
+    @media (min-width: 900px) {
+      .cards { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Library card (compact) ── */
+    .lib-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lib-card:active { transform: scale(.985); }
+    .lib-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .lib-check {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .15s;
+      font-size: 14px;
+      color: transparent;
+    }
+    .lib-card.selected .lib-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .lib-info { flex: 1; min-width: 0; }
+    .lib-name {
+      font-size: 15px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .lib-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .lib-roi {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .lib-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .lib-del {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+      background: var(--red-bg);
+      color: var(--red);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Full Card (compare view) ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: border-color .2s ease;
+    }
+    .card.winner {
+      border-color: var(--green);
+      box-shadow: var(--shadow-lg), 0 0 0 1px var(--green);
+    }
+    .card.winner .card-head::after {
+      content: 'Best ROI';
+      background: var(--green);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      gap: 8px;
+    }
+    .card-head h2 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-body { padding: 14px 16px 16px; }
+
+    /* ── Sections inside card ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-secondary);
+      margin: 16px 0 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .section-label:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+    /* ── Form inputs ── */
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px; /* prevents iOS zoom */
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+      color: var(--text);
+      transition: border-color .15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    .field input::placeholder { color: #94a3b8; }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── Toggle ── */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 28px;
+      flex-shrink: 0;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #cbd5e1;
+      border-radius: 28px;
+      transition: .2s;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      height: 22px;
+      width: 22px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .toggle input:checked + .slider { background: var(--accent); }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .toggle-label { font-size: 14px; font-weight: 500; }
+
+    /* ── Results output ── */
+    .results {
+      margin-top: 14px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+    }
+    .results-head {
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: #fff;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .results-body { padding: 10px 14px; }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      font-size: 13px;
+      border-bottom: 1px solid #eef1f5;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { color: var(--text-secondary); font-weight: 500; }
+    .result-value { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+    .result-value.positive { color: var(--green); }
+    .result-value.negative { color: var(--red); }
+    .result-value.highlight {
+      font-size: 16px;
+      color: var(--accent);
+    }
+    .result-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+    .result-row.warn-row {
+      background: var(--orange-bg);
+      margin: 4px -14px;
+      padding: 7px 14px;
+      border-bottom: none;
+      border-radius: 6px;
+      border-left: 3px solid var(--orange);
+    }
+    .result-row.warn-row .result-label { color: var(--orange); }
+    .result-row.warn-row .result-value { color: var(--orange); }
+    .result-missing {
+      padding: 16px;
+      text-align: center;
+      color: var(--orange);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--orange-bg);
+      border-radius: 8px;
+      margin: 8px;
+    }
+
+    /* ── Comparison section ── */
+    .compare-section {
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .compare-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare-title .sep { width: 3px; height: 18px; background: var(--accent); border-radius: 2px; }
+
+    /* Mobile comparison cards */
+    .compare-cards { display: flex; flex-direction: column; gap: 10px; }
+
+    .compare-card {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 16px;
+      position: relative;
+    }
+    .compare-card.rank-1 {
+      border: 2px solid var(--green);
+    }
+    .compare-card .rank-badge {
+      position: absolute;
+      top: -8px;
+      left: 14px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      background: var(--border);
+      color: var(--text-secondary);
+    }
+    .compare-card.rank-1 .rank-badge {
+      background: var(--green);
+      color: #fff;
+    }
+    .compare-card .cc-name {
+      grid-column: 1 / -1;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      margin-top: 2px;
+    }
+    .compare-card .cc-row {
+      display: contents;
+    }
+    .compare-card .cc-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 3px 0;
+    }
+    .compare-card .cc-val {
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      padding: 3px 0;
+    }
+    .compare-card .cc-val.accent { color: var(--accent); font-size: 15px; }
+
+    /* Desktop table */
+    @media (min-width: 900px) {
+      .compare-cards { display: none; }
+      .compare-table-wrap { display: block !important; }
+    }
+    .compare-table-wrap { display: none; overflow-x: auto; }
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      font-variant-numeric: tabular-nums;
+    }
+    .compare-table th {
+      background: #f1f5f9;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      padding: 12px 14px;
+      text-align: left;
+    }
+    .compare-table td {
+      padding: 12px 14px;
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .compare-table td:first-child { font-weight: 600; }
+    .compare-table .best-row { background: var(--green-bg); }
+
+    /* ── Info box ── */
+    .info-box {
+      margin: 16px 16px 0;
+      padding: 14px 16px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .info-box b { color: var(--text); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text-secondary);
+    }
+    .empty-state .es-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 12px; }
+    .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 6px; }
+    .empty-state p { font-size: 14px; max-width: 280px; margin: 0 auto; }
+
+    /* ── Saved indicator ── */
+    .saved-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.5);
+      margin-left: 6px;
+      vertical-align: middle;
+      transition: background .3s;
+    }
+    .saved-dot.flash {
+      background: #4ade80;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Dubai ROI Multi-Compare <span id="savedDot" class="saved-dot"></span></h1>
+    <div class="subtitle">DLD 4% + Agent 2%  |  Installment aware  |  Auto-saved</div>
+  </div>
+
+  <!-- Tabs: Library / Compare -->
+  <div class="tabs">
+    <button class="tab active" id="tabLibrary" onclick="switchView('library')">Library</button>
+    <button class="tab" id="tabCompare" onclick="switchView('compare')">Compare <span id="compareBadge" class="badge" style="display:none;">0</span></button>
+  </div>
+
+  <!-- Import banner (shown when opening a shared link) -->
+  <div id="importBanner" class="import-banner">
+    <h3>Shared Properties</h3>
+    <p id="importMsg">Someone shared properties with you.</p>
+    <div class="import-actions">
+      <button class="btn btn-primary btn-sm" onclick="doImport()">Import</button>
+      <button class="btn btn-secondary btn-sm" onclick="dismissImport()">Cancel</button>
+    </div>
+  </div>
+
+  <div id="err" class="alert alert-warn"></div>
+
+  <!-- Library view -->
+  <div id="libraryView">
+    <div class="actions">
+      <button class="btn btn-primary" onclick="addProperty()">Add Property</button>
+      <button class="btn btn-secondary" id="shareBtn" onclick="shareSelected()" style="display:none;">Share Selected</button>
+    </div>
+    <div id="libraryCards" class="cards"></div>
+    <div id="emptyState" class="empty-state">
+      <div class="es-label">Get started</div>
+      <h3>No properties yet</h3>
+      <p>Tap <b>Add Property</b> to start comparing Dubai real estate investments.</p>
+    </div>
+  </div>
+
+  <!-- Compare view -->
+  <div id="compareView" style="display:none;">
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="switchView('library')">Back to Library</button>
+      <button class="btn btn-green" id="shareCmpBtn" onclick="shareSelected()">Share</button>
+    </div>
+    <div id="compareEmpty" class="empty-state" style="display:none;">
+      <div class="es-label">Nothing selected</div>
+      <h3>No properties selected</h3>
+      <p>Go to the <b>Library</b> tab and check the properties you want to compare.</p>
+    </div>
+    <div id="cards" class="cards"></div>
+    <div id="compareSection" class="compare-section" style="display:none;">
+      <div class="compare-title">
+        <span class="sep"></span> Comparison
+      </div>
+      <div id="compareCards" class="compare-cards"></div>
+      <div id="compareTableWrap" class="compare-table-wrap"></div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <b>How installments are handled:</b> We estimate net rental cashflow during the
+    installment period and offset it against the total remaining installments.
+    Any shortfall becomes "Extra cash needed". <b>Net ROI after installments</b>
+    uses the effective total cash you invested out-of-pocket by the end of installments.
+    <br><br>
+    <b>Note:</b> Deposits (DEWA, chiller, rent security) are shown for info only &mdash; they
+    are refundable and not counted in ROI calculations.
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+<script>
+  // ═══════════════════════════════════════════════
+  //  HELPERS
+  // ═══════════════════════════════════════════════
+  const n = (v, fallback = 0) => {
+    const x = parseFloat(String(v == null ? "" : v).replace(/,/g, "").trim());
+    return Number.isFinite(x) ? x : fallback;
+  };
+
+  const fmt = (x) => {
+    if (!Number.isFinite(x)) return "0";
+    return Math.round(x).toLocaleString("en-US");
+  };
+
+  const fmt2 = (x) => {
+    if (!Number.isFinite(x)) return "0.00";
+    return x.toFixed(2);
+  };
+
+  const escHtml = (s) =>
+    String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+
+  // ═══════════════════════════════════════════════
+  //  STATE
+  // ═══════════════════════════════════════════════
+  let props = [];
+  let nextId = 1;
+  let viewMode = "library"; // "library" or "compare"
+  let pendingImport = null;  // holds decoded properties from URL until user confirms
+
+  // ═══════════════════════════════════════════════
+  //  LOCAL STORAGE
+  // ═══════════════════════════════════════════════
+  const STORAGE_KEY = "dubai_roi_props";
+  const STORAGE_ID_KEY = "dubai_roi_nextId";
+
+  function saveToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(props));
+      localStorage.setItem(STORAGE_ID_KEY, String(nextId));
+      flashSaved();
+    } catch (e) {
+      // storage full or unavailable — silently ignore
+    }
+  }
+
+  function loadFromStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const id = localStorage.getItem(STORAGE_ID_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          props = parsed.map(ensureDefaults);
+        }
+      }
+      if (id) {
+        nextId = parseInt(id, 10) || 1;
+      }
+      // Make sure nextId is higher than any existing id
+      for (const p of props) {
+        if (p.id >= nextId) nextId = p.id + 1;
+      }
+    } catch (e) {
+      // corrupt data — start fresh
+      props = [];
+      nextId = 1;
+    }
+  }
+
+  function ensureDefaults(p) {
+    return {
+      id: p.id || nextId++,
+      name: p.name || "",
+      purchasePrice: n(p.purchasePrice),
+      annualRent: n(p.annualRent),
+      sizeSqft: n(p.sizeSqft),
+      serviceFeePerSqft: n(p.serviceFeePerSqft, 15),
+      vacancyMonths: n(p.vacancyMonths, 1),
+      mgmtPct: n(p.mgmtPct, 5),
+      extraAnnual: n(p.extraAnnual),
+      ownerMaintAnnual: n(p.ownerMaintAnnual),
+      furnished: !!p.furnished,
+      downPayment: n(p.downPayment),
+      instMonthly: n(p.instMonthly),
+      instMonths: n(p.instMonths),
+      dewaDeposit: n(p.dewaDeposit, 1500),
+      chillerDeposit: n(p.chillerDeposit, 1500),
+      selected: !!p.selected
+    };
+  }
+
+  function flashSaved() {
+    const dot = document.getElementById("savedDot");
+    if (!dot) return;
+    dot.classList.add("flash");
+    setTimeout(() => dot.classList.remove("flash"), 600);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  SHARE (URL ENCODING)
+  // ═══════════════════════════════════════════════
+  // Compact key mapping to minimize URL size
+  const KEY_MAP = {
+    name: "n", purchasePrice: "pp", annualRent: "ar", sizeSqft: "sz",
+    serviceFeePerSqft: "sf", vacancyMonths: "vm", mgmtPct: "mp",
+    extraAnnual: "ea", ownerMaintAnnual: "om", furnished: "fu",
+    downPayment: "dp", instMonthly: "im", instMonths: "in",
+    dewaDeposit: "dd", chillerDeposit: "cd"
+  };
+  const KEY_MAP_REV = {};
+  for (const [k, v] of Object.entries(KEY_MAP)) KEY_MAP_REV[v] = k;
+
+  // Defaults — we omit fields that match defaults to save space
+  const DEFAULTS = {
+    serviceFeePerSqft: 15, vacancyMonths: 1, mgmtPct: 5,
+    extraAnnual: 0, ownerMaintAnnual: 0, furnished: false,
+    downPayment: 0, instMonthly: 0, instMonths: 0,
+    dewaDeposit: 1500, chillerDeposit: 1500
+  };
+
+  function encodeProps(list) {
+    const compact = list.map(p => {
+      const obj = {};
+      for (const [longKey, shortKey] of Object.entries(KEY_MAP)) {
+        const val = p[longKey];
+        // Skip default values to save space
+        if (longKey in DEFAULTS && val === DEFAULTS[longKey]) continue;
+        // Skip empty strings
+        if (val === "" || val === 0) {
+          // Keep name even if empty? No, skip empty name
+          if (longKey === "name" && val === "") continue;
+          // Keep zero for price/rent/size since they're required — but user might share incomplete
+          if (longKey === "purchasePrice" || longKey === "annualRent" || longKey === "sizeSqft") {
+            if (val === 0) continue;
+          }
+          if (val === 0 && longKey in DEFAULTS) continue;
+        }
+        obj[shortKey] = val;
+      }
+      return obj;
+    });
+    const json = JSON.stringify(compact);
+    // Base64url encode
+    return btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+
+  function decodeProps(encoded) {
+    try {
+      // Restore base64 padding
+      let b64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4 !== 0) b64 += "=";
+      const json = decodeURIComponent(escape(atob(b64)));
+      const arr = JSON.parse(json);
+      if (!Array.isArray(arr)) return [];
+      return arr.map(obj => {
+        const full = {};
+        for (const [shortKey, val] of Object.entries(obj)) {
+          const longKey = KEY_MAP_REV[shortKey];
+          if (longKey) full[longKey] = val;
+        }
+        return ensureDefaults(full);
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function shareSelected() {
+    const sel = props.filter(p => p.selected);
+    const toShare = sel.length > 0 ? sel : props;
+    if (toShare.length === 0) {
+      showToast("No properties to share");
+      return;
+    }
+
+    const encoded = encodeProps(toShare);
+    const base = window.location.origin + window.location.pathname;
+    const url = base + "?d=" + encoded;
+
+    const label = sel.length > 0
+      ? sel.length + " selected propert" + (sel.length === 1 ? "y" : "ies")
+      : props.length + " propert" + (props.length === 1 ? "y" : "ies");
+
+    // Try native share first (mobile)
+    if (navigator.share) {
+      navigator.share({
+        title: "Dubai ROI Compare",
+        text: "Check out " + label + " I'm comparing:",
+        url: url
+      }).catch(() => {
+        // User cancelled share — fall back to clipboard
+        copyToClipboard(url);
+      });
+    } else {
+      copyToClipboard(url);
+    }
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Link copied to clipboard!");
+      }).catch(() => {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      showToast("Link copied to clipboard!");
+    } catch (e) {
+      showToast("Could not copy link");
+    }
+    document.body.removeChild(ta);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  IMPORT (URL DECODING)
+  // ═══════════════════════════════════════════════
+  function checkUrlImport() {
+    const params = new URLSearchParams(window.location.search);
+    const data = params.get("d");
+    if (!data) return;
+
+    const decoded = decodeProps(data);
+    if (decoded.length === 0) return;
+
+    pendingImport = decoded;
+
+    const banner = document.getElementById("importBanner");
+    const msg = document.getElementById("importMsg");
+    msg.textContent = "Someone shared " + decoded.length +
+      " propert" + (decoded.length === 1 ? "y" : "ies") + " with you. Import them into your library?";
+    banner.style.display = "block";
+  }
+
+  function doImport() {
+    if (!pendingImport || pendingImport.length === 0) return;
+
+    let imported = 0;
+    for (const incoming of pendingImport) {
+      // Duplicate detection: same name AND same purchase price
+      const isDupe = props.some(existing =>
+        existing.name === incoming.name &&
+        existing.purchasePrice === incoming.purchasePrice &&
+        existing.annualRent === incoming.annualRent
+      );
+      if (!isDupe) {
+        incoming.id = nextId++;
+        incoming.selected = false;
+        props.push(incoming);
+        imported++;
+      }
+    }
+
+    pendingImport = null;
+    document.getElementById("importBanner").style.display = "none";
+
+    // Clean URL
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    saveToStorage();
+    renderAll();
+    showToast(imported > 0
+      ? "Imported " + imported + " propert" + (imported === 1 ? "y" : "ies") + "!"
+      : "All properties already in your library");
+  }
+
+  function dismissImport() {
+    pendingImport = null;
+    document.getElementById("importBanner").style.display = "none";
+    // Clean URL
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  //  TOAST
+  // ═══════════════════════════════════════════════
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2500);
+  }
+
+  // ═══════════════════════════════════════════════
+  //  CORE CALCULATION (unchanged logic)
+  // ═══════════════════════════════════════════════
+  function calc(p) {
+    const purchasePrice = p.purchasePrice;
+
+    // One-time acquisition costs: DLD 4% + Agent 2% = 6%
+    const acquisitionOneTime = purchasePrice * 0.06;
+
+    // If no downpayment specified, assume property is fully paid
+    const downPayment = p.downPayment > 0 ? p.downPayment : purchasePrice;
+
+    const instMonthly = p.instMonthly;
+    const instMonths = p.instMonths;
+    const totalInstallments = instMonthly * instMonths;
+
+    // Annual expenses
+    const serviceFeesAnnual = p.sizeSqft * p.serviceFeePerSqft;
+    const vacancyLossAnnual = (p.annualRent / 12) * p.vacancyMonths;
+    const mgmtFeesAnnual = p.annualRent * (p.mgmtPct / 100);
+    const extrasAnnual = p.extraAnnual + p.ownerMaintAnnual;
+    const annualExpenses = serviceFeesAnnual + vacancyLossAnnual + mgmtFeesAnnual + extrasAnnual;
+
+    // Net annual income (steady-state, after all installments paid)
+    const netAnnualIncome = p.annualRent - annualExpenses;
+
+    // Cash paid now: downpayment + acquisition costs (DLD + agent due at transfer)
+    const cashNow = downPayment + acquisitionOneTime;
+
+    // Net rental cashflow during installment period
+    const netDuringInstallments = instMonths > 0 ? netAnnualIncome * (instMonths / 12) : 0;
+
+    // Extra cash needed beyond what rent covers during installment period
+    const extraCashForInstallments = Math.max(0, totalInstallments - Math.max(0, netDuringInstallments));
+
+    // Total cash invested out of pocket by end of installments
+    const totalCashByEnd = cashNow + extraCashForInstallments;
+
+    // ROI metrics
+    const grossROI = ((p.annualRent / (purchasePrice + acquisitionOneTime)) * 100);
+    const netROI = totalCashByEnd > 0 ? ((netAnnualIncome / totalCashByEnd) * 100) : 0;
+
+    // Monthly view during installment period
+    const monthlyNetBeforeInstall = netAnnualIncome / 12;
+    const monthlyNetAfterInstall = monthlyNetBeforeInstall - instMonthly;
+
+    // Informational deposits
+    const rentDeposit = p.annualRent * (p.furnished ? 0.10 : 0.05);
+
+    // Validation warnings
+    const warnings = [];
+    if (p.downPayment > 0 && p.downPayment < purchasePrice && instMonthly <= 0 && instMonths <= 0) {
+      warnings.push("Downpayment is less than purchase price but no installments specified \u2014 check your inputs.");
+    }
+    if (p.downPayment > 0 && (p.downPayment + totalInstallments) < purchasePrice * 0.95) {
+      warnings.push("Downpayment + total installments (" + fmt(p.downPayment + totalInstallments) +
+        " AED) seems less than purchase price (" + fmt(purchasePrice) + " AED) \u2014 verify your numbers.");
+    }
+    if (monthlyNetAfterInstall < 0 && instMonths > 0) {
+      warnings.push("Property bleeds " + fmt(Math.abs(monthlyNetAfterInstall)) +
+        " AED/month during the installment period.");
+    }
+
+    return {
+      acquisitionOneTime,
+      cashNow,
+      annualExpenses,
+      netAnnualIncome,
+      totalInstallments,
+      netDuringInstallments,
+      extraCashForInstallments,
+      totalCashByEnd,
+      grossROI,
+      netROI,
+      monthlyNetBeforeInstall,
+      monthlyNetAfterInstall,
+      serviceFeesAnnual,
+      vacancyLossAnnual,
+      mgmtFeesAnnual,
+      extrasAnnual,
+      rentDeposit,
+      warnings
+    };
+  }
+
+  // Quick ROI for library summary (returns null if data incomplete)
+  function quickROI(p) {
+    if (!p.purchasePrice || !p.annualRent || !p.sizeSqft) return null;
+    const r = calc(p);
+    return r.netROI;
+  }
+
+  // ═══════════════════════════════════════════════
+  //  VIEW SWITCHING
+  // ═══════════════════════════════════════════════
+  function switchView(mode) {
+    viewMode = mode;
+    document.getElementById("tabLibrary").classList.toggle("active", mode === "library");
+    document.getElementById("tabCompare").classList.toggle("active", mode === "compare");
+    document.getElementById("libraryView").style.display = mode === "library" ? "" : "none";
+    document.getElementById("compareView").style.display = mode === "compare" ? "" : "none";
+
+    if (mode === "compare") {
+      renderCompareCards();
+      recalc();
+    }
+  }
+
+  function updateBadge() {
+    const count = props.filter(p => p.selected).length;
+    const badge = document.getElementById("compareBadge");
+    badge.textContent = String(count);
+    badge.style.display = count > 0 ? "inline-block" : "none";
+
+    const shareBtn = document.getElementById("shareBtn");
+    shareBtn.style.display = props.length > 0 ? "" : "none";
+    shareBtn.textContent = count > 0 ? ("Share " + count + " Selected") : "Share All";
+  }
+
+  // ═══════════════════════════════════════════════
+  //  LIBRARY VIEW
+  // ═══════════════════════════════════════════════
+  function libraryCardTemplate(p) {
+    const roi = quickROI(p);
+    const roiStr = roi !== null ? fmt2(roi) + "%" : "--";
+    const meta = [];
+    if (p.purchasePrice) meta.push(fmt(p.purchasePrice) + " AED");
+    if (p.annualRent) meta.push("Rent " + fmt(p.annualRent));
+    if (p.sizeSqft) meta.push(p.sizeSqft + " sqft");
+
+    return '<div class="lib-card' + (p.selected ? ' selected' : '') + '" onclick="toggleSelect(' + p.id + ')">' +
+      '<div class="lib-check">' + (p.selected ? '\u2713' : '') + '</div>' +
+      '<div class="lib-info">' +
+        '<div class="lib-name">' + escHtml(p.name || ("Property " + p.id)) + '</div>' +
+        (meta.length > 0 ? '<div class="lib-meta">' + meta.map(function(m){ return '<span>' + m + '</span>'; }).join('') + '</div>' : '<div class="lib-meta"><span>Tap to select, tap + to add details</span></div>') +
+      '</div>' +
+      '<div class="lib-roi">' + roiStr + '</div>' +
+      '<div class="lib-actions">' +
+        '<button class="lib-del" onclick="event.stopPropagation();removeProperty(' + p.id + ')" title="Delete">\u00D7</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderLibrary() {
+    const container = document.getElementById("libraryCards");
+    const empty = document.getElementById("emptyState");
+
+    if (props.length === 0) {
+      container.innerHTML = "";
+      empty.style.display = "block";
+    } else {
+      empty.style.display = "none";
+      container.innerHTML = props.map(libraryCardTemplate).join("");
+    }
+    updateBadge();
+  }
+
+  function toggleSelect(id) {
+    const p = props.find(function(x) { return x.id === id; });
+    if (!p) return;
+    p.selected = !p.selected;
+    saveToStorage();
+    renderLibrary();
+  }
+
+  // ═══════════════════════════════════════════════
+  //  COMPARE VIEW (full editable cards)
+  // ═══════════════════════════════════════════════
+  function propertyTemplate(p) {
+    return '<div class="card" id="card-' + p.id + '">' +
+      '<div class="card-head">' +
+        '<h2>' + escHtml(p.name || ("Property " + p.id)) + '</h2>' +
+        '<button class="btn btn-danger" onclick="deselectProperty(' + p.id + ')">Deselect</button>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="section-label">Basic Info</div>' +
+        '<div class="field">' +
+          '<label>Property Name</label>' +
+          '<input value="' + escHtml(p.name) + '" oninput="update(' + p.id + ',\'name\',this.value)" placeholder="e.g. JVC Studio 512">' +
+        '</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Purchase Price (AED)</label>' +
+            '<input inputmode="numeric" value="' + (p.purchasePrice || '') + '" oninput="update(' + p.id + ',\'purchasePrice\',this.value)" placeholder="e.g. 700,000">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Annual Rent (AED)</label>' +
+            '<input inputmode="numeric" value="' + (p.annualRent || '') + '" oninput="update(' + p.id + ',\'annualRent\',this.value)" placeholder="e.g. 55,000">' +
+          '</div>' +
+        '</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Size (sqft)</label>' +
+            '<input inputmode="numeric" value="' + (p.sizeSqft || '') + '" oninput="update(' + p.id + ',\'sizeSqft\',this.value)" placeholder="e.g. 466">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Service Fee (AED/sqft/yr)</label>' +
+            '<input inputmode="numeric" value="' + p.serviceFeePerSqft + '" oninput="update(' + p.id + ',\'serviceFeePerSqft\',this.value)">' +
+          '</div>' +
+        '</div>' +
+        '<div class="section-label">Operating Costs</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Vacancy (months/yr)</label>' +
+            '<input inputmode="numeric" value="' + p.vacancyMonths + '" oninput="update(' + p.id + ',\'vacancyMonths\',this.value)">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Management (% of rent)</label>' +
+            '<input inputmode="numeric" value="' + p.mgmtPct + '" oninput="update(' + p.id + ',\'mgmtPct\',this.value)">' +
+          '</div>' +
+        '</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Extra Annual Fees (AED)</label>' +
+            '<input inputmode="numeric" value="' + p.extraAnnual + '" oninput="update(' + p.id + ',\'extraAnnual\',this.value)">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Owner Maintenance (AED/yr)</label>' +
+            '<input inputmode="numeric" value="' + p.ownerMaintAnnual + '" oninput="update(' + p.id + ',\'ownerMaintAnnual\',this.value)">' +
+          '</div>' +
+        '</div>' +
+        '<div class="toggle-wrap">' +
+          '<label class="toggle">' +
+            '<input type="checkbox" ' + (p.furnished ? 'checked' : '') + ' onchange="update(' + p.id + ',\'furnished\',this.checked)">' +
+            '<span class="slider"></span>' +
+          '</label>' +
+          '<span class="toggle-label">Furnished</span>' +
+        '</div>' +
+        '<div class="section-label">Installments (Post-Handover)</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Downpayment (AED)</label>' +
+            '<input inputmode="numeric" value="' + (p.downPayment || '') + '" oninput="update(' + p.id + ',\'downPayment\',this.value)" placeholder="Blank = fully paid">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Monthly Installment (AED)</label>' +
+            '<input inputmode="numeric" value="' + (p.instMonthly || '') + '" oninput="update(' + p.id + ',\'instMonthly\',this.value)" placeholder="e.g. 7,000">' +
+          '</div>' +
+        '</div>' +
+        '<div class="row2">' +
+          '<div class="field">' +
+            '<label>Remaining Months</label>' +
+            '<input inputmode="numeric" value="' + (p.instMonths || '') + '" oninput="update(' + p.id + ',\'instMonths\',this.value)" placeholder="e.g. 37">' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>DEWA Deposit (AED)</label>' +
+            '<input inputmode="numeric" value="' + p.dewaDeposit + '" oninput="update(' + p.id + ',\'dewaDeposit\',this.value)">' +
+          '</div>' +
+        '</div>' +
+        '<div class="field" style="max-width:calc(50% - 5px);">' +
+          '<label>Chiller Deposit (AED)</label>' +
+          '<input inputmode="numeric" value="' + p.chillerDeposit + '" oninput="update(' + p.id + ',\'chillerDeposit\',this.value)">' +
+        '</div>' +
+        '<div id="out-' + p.id + '"></div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderCompareCards() {
+    const selected = props.filter(function(p) { return p.selected; });
+    const container = document.getElementById("cards");
+    const emptyEl = document.getElementById("compareEmpty");
+
+    if (selected.length === 0) {
+      container.innerHTML = "";
+      emptyEl.style.display = "block";
+    } else {
+      emptyEl.style.display = "none";
+      container.innerHTML = selected.map(propertyTemplate).join("");
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  //  ACTIONS
+  // ═══════════════════════════════════════════════
+  function addProperty() {
+    const newProp = ensureDefaults({
+      id: nextId++,
+      name: "",
+      purchasePrice: 0,
+      annualRent: 0,
+      sizeSqft: 0,
+      selected: false
+    });
+    props.push(newProp);
+    saveToStorage();
+    renderLibrary();
+  }
+
+  function removeProperty(id) {
+    props = props.filter(function(p) { return p.id !== id; });
+    saveToStorage();
+    renderAll();
+  }
+
+  function deselectProperty(id) {
+    var p = props.find(function(x) { return x.id === id; });
+    if (p) p.selected = false;
+    saveToStorage();
+    renderCompareCards();
+    recalc();
+    updateBadge();
+  }
+
+  function update(id, key, value) {
+    var p = props.find(function(x) { return x.id === id; });
+    if (!p) return;
+
+    if (key === "name") p.name = value;
+    else if (key === "furnished") p.furnished = !!value;
+    else p[key] = n(value, 0);
+
+    saveToStorage();
+
+    // Auto-recalculate
+    recalc();
+
+    // Update card title live
+    if (key === "name") {
+      var h2 = document.querySelector("#card-" + id + " .card-head h2");
+      if (h2) h2.textContent = value || ("Property " + id);
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  //  RENDER ALL
+  // ═══════════════════════════════════════════════
+  function renderAll() {
+    renderLibrary();
+    if (viewMode === "compare") {
+      renderCompareCards();
+      recalc();
+    }
+  }
+
+  // ═══════════════════════════════════════════════
+  //  RECALC (runs on compare view)
+  // ═══════════════════════════════════════════════
+  function recalc() {
+    var err = document.getElementById("err");
+    err.style.display = "none";
+    err.textContent = "";
+
+    var compareSection = document.getElementById("compareSection");
+    var selected = props.filter(function(p) { return p.selected; });
+
+    if (selected.length === 0) {
+      compareSection.style.display = "none";
+      return;
+    }
+
+    var rows = [];
+    var bestId = null;
+    var bestROI = -Infinity;
+
+    for (var i = 0; i < selected.length; i++) {
+      var p = selected[i];
+      var outEl = document.getElementById("out-" + p.id);
+      if (!outEl) continue;
+
+      // Validate required fields
+      var missing = [];
+      if (!p.purchasePrice) missing.push("Purchase Price");
+      if (!p.annualRent) missing.push("Annual Rent");
+      if (!p.sizeSqft) missing.push("Size (sqft)");
+
+      if (missing.length) {
+        outEl.innerHTML =
+          '<div class="results" style="border-color:#fed7aa;">' +
+            '<div class="result-missing">' +
+              'Required: <b>' + missing.join(", ") + '</b>' +
+            '</div>' +
+          '</div>';
+        continue;
+      }
+
+      var r = calc(p);
+
+      // Track best ROI
+      if (r.netROI > bestROI) {
+        bestROI = r.netROI;
+        bestId = p.id;
+      }
+
+      // Build warnings HTML
+      var warningsHtml = "";
+      if (r.warnings.length > 0) {
+        for (var w = 0; w < r.warnings.length; w++) {
+          warningsHtml += '<div class="result-row warn-row">' +
+            '<span class="result-label">' + escHtml(r.warnings[w]) + '</span>' +
+          '</div>';
+        }
+      }
+
+      var installSection = "";
+      if (r.totalInstallments > 0) {
+        installSection =
+          '<div class="result-divider"></div>' +
+          '<div class="result-row">' +
+            '<span class="result-label">Total installments remaining</span>' +
+            '<span class="result-value">' + fmt(r.totalInstallments) + ' AED</span>' +
+          '</div>' +
+          '<div class="result-row">' +
+            '<span class="result-label">Net cashflow during installments</span>' +
+            '<span class="result-value ' + (r.netDuringInstallments >= 0 ? 'positive' : 'negative') + '">' + fmt(r.netDuringInstallments) + ' AED</span>' +
+          '</div>' +
+          '<div class="result-row">' +
+            '<span class="result-label">Extra cash needed</span>' +
+            '<span class="result-value ' + (r.extraCashForInstallments > 0 ? 'negative' : 'positive') + '">' + fmt(r.extraCashForInstallments) + ' AED</span>' +
+          '</div>';
+      }
+
+      var monthlyAfterSection = "";
+      if (p.instMonthly > 0) {
+        monthlyAfterSection =
+          '<div class="result-row">' +
+            '<span class="result-label">Monthly net (after installment)</span>' +
+            '<span class="result-value ' + (r.monthlyNetAfterInstall >= 0 ? 'positive' : 'negative') + '">' + fmt(r.monthlyNetAfterInstall) + ' AED</span>' +
+          '</div>';
+      }
+
+      outEl.innerHTML =
+        '<div class="results">' +
+          '<div class="results-head">Results</div>' +
+          '<div class="results-body">' +
+            warningsHtml +
+            '<div class="result-row">' +
+              '<span class="result-label">Cash needed now</span>' +
+              '<span class="result-value">' + fmt(r.cashNow) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label" style="padding-left:10px;">Acquisition costs (6%)</span>' +
+              '<span class="result-value">' + fmt(r.acquisitionOneTime) + ' AED</span>' +
+            '</div>' +
+            installSection +
+            '<div class="result-divider"></div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Total cash invested</span>' +
+              '<span class="result-value highlight">' + fmt(r.totalCashByEnd) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-divider"></div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Annual expenses</span>' +
+              '<span class="result-value">' + fmt(r.annualExpenses) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Net annual income</span>' +
+              '<span class="result-value ' + (r.netAnnualIncome >= 0 ? 'positive' : 'negative') + '">' + fmt(r.netAnnualIncome) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-divider"></div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Gross ROI</span>' +
+              '<span class="result-value">' + fmt2(r.grossROI) + '%</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label"><b>Net ROI (on cash invested)</b></span>' +
+              '<span class="result-value highlight">' + fmt2(r.netROI) + '%</span>' +
+            '</div>' +
+            '<div class="result-divider"></div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Monthly net (before installment)</span>' +
+              '<span class="result-value ' + (r.monthlyNetBeforeInstall >= 0 ? 'positive' : 'negative') + '">' + fmt(r.monthlyNetBeforeInstall) + ' AED</span>' +
+            '</div>' +
+            monthlyAfterSection +
+            '<div class="result-divider"></div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Deposits (refundable, info only)</span>' +
+              '<span class="result-value">' + fmt(r.rentDeposit + p.dewaDeposit + p.chillerDeposit) + ' AED</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      rows.push({
+        id: p.id,
+        name: p.name || ("Property " + p.id),
+        netROI: r.netROI,
+        grossROI: r.grossROI,
+        netAnnual: r.netAnnualIncome,
+        cashNow: r.cashNow,
+        totalCashEnd: r.totalCashByEnd,
+        monthlyAfter: r.monthlyNetAfterInstall,
+        monthlyBefore: r.monthlyNetBeforeInstall
+      });
+    }
+
+    // Highlight winner card
+    for (var j = 0; j < selected.length; j++) {
+      var card = document.getElementById("card-" + selected[j].id);
+      if (card) card.classList.toggle("winner", selected[j].id === bestId && rows.length > 1);
+    }
+
+    // Sort by net ROI descending
+    rows.sort(function(a, b) { return b.netROI - a.netROI; });
+
+    if (rows.length === 0) {
+      compareSection.style.display = "none";
+      return;
+    }
+
+    compareSection.style.display = "block";
+
+    // Mobile comparison cards
+    var mobileHtml = "";
+    for (var k = 0; k < rows.length; k++) {
+      var rr = rows[k];
+      mobileHtml +=
+        '<div class="compare-card ' + (k === 0 && rows.length > 1 ? 'rank-1' : '') + '">' +
+          '<span class="rank-badge">#' + (k + 1) + '</span>' +
+          '<div class="cc-name">' + escHtml(rr.name) + '</div>' +
+          '<div class="cc-row"><span class="cc-label">Net ROI (on cash)</span><span class="cc-val accent">' + fmt2(rr.netROI) + '%</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Gross ROI</span><span class="cc-val">' + fmt2(rr.grossROI) + '%</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Net annual income</span><span class="cc-val">' + fmt(rr.netAnnual) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Cash needed now</span><span class="cc-val">' + fmt(rr.cashNow) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Total cash invested</span><span class="cc-val">' + fmt(rr.totalCashEnd) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Monthly net (before inst.)</span><span class="cc-val">' + fmt(rr.monthlyBefore) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Monthly net (after inst.)</span><span class="cc-val">' + fmt(rr.monthlyAfter) + ' AED</span></div>' +
+        '</div>';
+    }
+    document.getElementById("compareCards").innerHTML = mobileHtml;
+
+    // Desktop comparison table
+    var tableHtml =
+      '<table class="compare-table">' +
+        '<thead><tr>' +
+          '<th>Property</th>' +
+          '<th>Net ROI</th>' +
+          '<th>Gross ROI</th>' +
+          '<th>Net Annual</th>' +
+          '<th>Cash Now</th>' +
+          '<th>Total Cash</th>' +
+          '<th>Monthly After Inst.</th>' +
+        '</tr></thead>' +
+        '<tbody>';
+    for (var m = 0; m < rows.length; m++) {
+      var rw = rows[m];
+      tableHtml +=
+        '<tr class="' + (m === 0 && rows.length > 1 ? 'best-row' : '') + '">' +
+          '<td>' + escHtml(rw.name) + '</td>' +
+          '<td><b>' + fmt2(rw.netROI) + '%</b></td>' +
+          '<td>' + fmt2(rw.grossROI) + '%</td>' +
+          '<td>' + fmt(rw.netAnnual) + '</td>' +
+          '<td>' + fmt(rw.cashNow) + '</td>' +
+          '<td>' + fmt(rw.totalCashEnd) + '</td>' +
+          '<td>' + fmt(rw.monthlyAfter) + '</td>' +
+        '</tr>';
+    }
+    tableHtml += '</tbody></table>';
+    document.getElementById("compareTableWrap").innerHTML = tableHtml;
+  }
+
+  // ═══════════════════════════════════════════════
+  //  INIT
+  // ═══════════════════════════════════════════════
+  loadFromStorage();
+  renderAll();
+  checkUrlImport();
+</script>
+
+</body>
+</html>
