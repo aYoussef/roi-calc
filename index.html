@@ -1144,7 +1144,7 @@
       '<div class="lib-check">' + (p.selected ? '\u2713' : '') + '</div>' +
       '<div class="lib-info">' +
         '<div class="lib-name">' + escHtml(p.name || ("Property " + p.id)) + '</div>' +
-        (meta.length > 0 ? '<div class="lib-meta">' + meta.map(function(m){ return '<span>' + m + '</span>'; }).join('') + '</div>' : '<div class="lib-meta"><span>Tap to select, tap + to add details</span></div>') +
+        (meta.length > 0 ? '<div class="lib-meta">' + meta.map(function(m){ return '<span>' + m + '</span>'; }).join('') + '</div>' : '<div class="lib-meta"><span>No details yet</span></div>') +
       '</div>' +
       '<div class="lib-roi">' + roiStr + '</div>' +
       '<div class="lib-actions">' +
@@ -1292,11 +1292,17 @@
       purchasePrice: 0,
       annualRent: 0,
       sizeSqft: 0,
-      selected: false
+      selected: true
     });
     props.push(newProp);
     saveToStorage();
     renderLibrary();
+    switchView("compare");
+    // Scroll to the new card
+    setTimeout(function() {
+      var el = document.getElementById("card-" + newProp.id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   }
 
   function removeProperty(id) {
