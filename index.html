@@ -924,18 +924,11 @@
       const obj = {};
       for (const [longKey, shortKey] of Object.entries(KEY_MAP)) {
         const val = p[longKey];
-        // Skip default values to save space
+        // Skip default values to save space (only if the value exactly matches the default)
         if (longKey in DEFAULTS && val === DEFAULTS[longKey]) continue;
-        // Skip empty strings
-        if (val === "" || val === 0) {
-          // Keep name even if empty? No, skip empty name
-          if (longKey === "name" && val === "") continue;
-          // Keep zero for price/rent/size since they're required — but user might share incomplete
-          if (longKey === "purchasePrice" || longKey === "annualRent" || longKey === "sizeSqft") {
-            if (val === 0) continue;
-          }
-          if (val === 0 && longKey in DEFAULTS) continue;
-        }
+        // Skip empty/zero values for non-default fields
+        if (longKey === "name" && val === "") continue;
+        if ((longKey === "purchasePrice" || longKey === "annualRent" || longKey === "sizeSqft") && val === 0) continue;
         obj[shortKey] = val;
       }
       return obj;
@@ -1706,6 +1699,7 @@
       rows.push({
         id: p.id,
         name: p.name || ("Property " + p.id),
+        furnished: p.furnished,
         netROI: r.netROI,
         grossROI: r.grossROI,
         netAnnual: r.netAnnualIncome,
@@ -1743,7 +1737,7 @@
       mobileHtml +=
         '<div class="compare-card ' + (k === 0 && rows.length > 1 ? 'rank-1' : '') + '">' +
           '<span class="rank-badge">#' + (k + 1) + '</span>' +
-          '<div class="cc-name">' + escHtml(rr.name) + '</div>' +
+          '<div class="cc-name">' + escHtml(rr.name) + ' <span style="font-weight:400;font-size:12px;color:var(--muted);">' + (rr.furnished ? 'Furnished' : 'Unfurnished') + '</span></div>' +
           '<div class="cc-row"><span class="cc-label"><b>' + HOLD_YEARS + '-Year ROI</b></span><span class="cc-val accent"><b>' + fmt2(rr.fiveYrROI) + '%</b></span></div>' +
           '<div class="cc-row"><span class="cc-label">' + HOLD_YEARS + '-Year Net Income</span><span class="cc-val ' + (rr.fiveYrNetIncome >= 0 ? 'positive' : 'negative') + '">' + fmt(rr.fiveYrNetIncome) + ' AED</span></div>' +
           '<div class="cc-row"><span class="cc-label">Total capital deployed</span><span class="cc-val">' + fmt(rr.totalCapitalDeployed) + ' AED</span></div>' +
@@ -1761,6 +1755,7 @@
       '<table class="compare-table">' +
         '<thead><tr>' +
           '<th>Property</th>' +
+          '<th>Type</th>' +
           '<th>' + HOLD_YEARS + 'yr ROI</th>' +
           '<th>' + HOLD_YEARS + 'yr Income</th>' +
           '<th>Capital Deployed</th>' +
@@ -1775,6 +1770,7 @@
       tableHtml +=
         '<tr class="' + (m === 0 && rows.length > 1 ? 'best-row' : '') + '">' +
           '<td>' + escHtml(rw.name) + '</td>' +
+          '<td>' + (rw.furnished ? 'Furnished' : 'Unfurnished') + '</td>' +
           '<td><b>' + fmt2(rw.fiveYrROI) + '%</b></td>' +
           '<td>' + fmt(rw.fiveYrNetIncome) + '</td>' +
           '<td>' + fmt(rw.totalCapitalDeployed) + '</td>' +
