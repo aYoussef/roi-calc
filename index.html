@@ -311,7 +311,7 @@
       box-shadow: var(--shadow-lg), 0 0 0 1px var(--green);
     }
     .card.winner .card-head::after {
-      content: 'Best ROI';
+      content: 'Best 5yr Return';
       background: var(--green);
       color: #fff;
       font-size: 11px;
@@ -680,7 +680,7 @@
     <div id="cards" class="cards"></div>
     <div id="compareSection" class="compare-section" style="display:none;">
       <div class="compare-title">
-        <span class="sep"></span> Comparison
+        <span class="sep"></span> 5-Year Comparison
       </div>
       <div id="compareCards" class="compare-cards"></div>
       <div id="compareTableWrap" class="compare-table-wrap"></div>
@@ -714,16 +714,25 @@
     This is your steady-state yearly profit after all recurring costs, once installments are done.
 
     <br><br>
-    <b>Installment Period (Post-Handover)</b><br>
-    Total installments remaining = Monthly Installment &times; Remaining Months<br>
-    Net cashflow during installments = Net Annual Income &times; (Remaining Months &divide; 12)<br>
-    Extra cash needed = max(0, Total Installments &minus; Net Cashflow During Installments)<br>
-    This is the out-of-pocket shortfall if rent doesn't fully cover installments.
+    <b>Months to Handover (off-plan / under construction)</b><br>
+    If the property isn't ready yet, set "Months to Handover" to the number of months until delivery.
+    During this period you earn zero rent. Any installments falling in this window are pure cash out.<br>
+    Lost rent = (Annual Rent &divide; 12) &times; Months to Handover<br>
+    Set to 0 for ready/secondary-market properties.
+
+    <br><br>
+    <b>Installment Breakdown</b><br>
+    Total installments = Monthly Installment &times; Remaining Months<br>
+    <i>Pre-handover installments</i> = Monthly Installment &times; min(Months to Handover, Remaining Months)
+    &mdash; paid with no rental income, pure out-of-pocket.<br>
+    <i>Post-handover installments</i> = the remaining months after handover, where net rental income offsets payments.<br>
+    Net rent during post-handover = Net Annual Income &times; (Post-Handover Months &divide; 12)<br>
+    Extra cash needed = Pre-handover cost + max(0, Post-handover installments &minus; Net rent during post-handover)
 
     <br><br>
     <b>Total Cash Invested</b><br>
     Total Cash Invested = Cash Now + Extra Cash Needed<br>
-    This represents everything you paid out-of-pocket by the end of the installment period.
+    This represents everything you paid out-of-pocket by the time installments are done and the property is generating income.
 
     <br><br>
     <b>Gross ROI</b><br>
@@ -750,6 +759,29 @@
     Rent security deposit = Annual Rent &times; 5% (unfurnished) or 10% (furnished)<br>
     DEWA deposit and Chiller deposit are entered directly.<br>
     These are shown for info only &mdash; they are refundable and not counted in ROI.
+
+    <br><br>
+    <b>5-Year Hold Analysis (Winner Ranking)</b><br>
+    The calculator evaluates every property over a 5-year holding period to find the best investment.<br><br>
+
+    <i>Rental months in 5 years</i> = max(0, 60 &minus; Months to Handover)<br>
+    If handover is 12 months away, you only collect rent for 48 of the 60 months.<br><br>
+
+    <i>Net rental income (5yr)</i> = Net Annual Income &times; (Rental Months &divide; 12)<br>
+    Your total net rental income over the entire holding period.<br><br>
+
+    <i>Total capital deployed</i> = Cash Now + Installments paid within 5 years<br>
+    Every dirham that leaves your pocket during the hold. Installments beyond the 5-year window are excluded since you'd sell before paying them.<br>
+    Note: installments build equity in your property (they are not lost money).<br><br>
+
+    <i>5-Year ROI</i> = Net Rental Income (5yr) &divide; Total Capital Deployed &times; 100<br>
+    A cash-on-cash return: how much rental income you earned for every dirham deployed over 5 years.
+    <b>This is the key ranking metric</b> &mdash; the property with the highest 5-Year ROI is marked as the winner.<br><br>
+
+    Why this works: A ready property with installments deploys less upfront cash, so the same rent yields a higher return on capital. An off-plan property loses rental months, lowering its 5-year income. The ranking captures both effects.<br><br>
+
+    <i>Annualized Return</i> = 5-Year ROI &divide; 5<br>
+    A simple average annual return for quick comparison.
 
     <br><br>
     <b>Installment Warning</b><br>
@@ -851,6 +883,7 @@
       downPayment: n(p.downPayment),
       instMonthly: n(p.instMonthly),
       instMonths: n(p.instMonths),
+      handoverMonths: n(p.handoverMonths),
       dewaDeposit: n(p.dewaDeposit, 1500),
       chillerDeposit: n(p.chillerDeposit, 1500),
       selected: !!p.selected
@@ -873,7 +906,7 @@
     serviceFeePerSqft: "sf", vacancyMonths: "vm", mgmtPct: "mp",
     extraAnnual: "ea", ownerMaintAnnual: "om", furnished: "fu",
     downPayment: "dp", instMonthly: "im", instMonths: "in",
-    dewaDeposit: "dd", chillerDeposit: "cd"
+    handoverMonths: "hm", dewaDeposit: "dd", chillerDeposit: "cd"
   };
   const KEY_MAP_REV = {};
   for (const [k, v] of Object.entries(KEY_MAP)) KEY_MAP_REV[v] = k;
@@ -883,7 +916,7 @@
     serviceFeePerSqft: 15, vacancyMonths: 1, mgmtPct: 5,
     extraAnnual: 0, ownerMaintAnnual: 0, furnished: false,
     downPayment: 0, instMonthly: 0, instMonths: 0,
-    dewaDeposit: 1500, chillerDeposit: 1500
+    handoverMonths: 0, dewaDeposit: 1500, chillerDeposit: 1500
   };
 
   function encodeProps(list) {
@@ -1071,8 +1104,11 @@
   }
 
   // ═══════════════════════════════════════════════
-  //  CORE CALCULATION (unchanged logic)
+  //  CORE CALCULATION
   // ═══════════════════════════════════════════════
+  const HOLD_YEARS = 5;
+  const HOLD_MONTHS = HOLD_YEARS * 12;
+
   function calc(p) {
     const purchasePrice = p.purchasePrice;
 
@@ -1084,6 +1120,7 @@
 
     const instMonthly = p.instMonthly;
     const instMonths = p.instMonths;
+    const handoverMonths = p.handoverMonths;
     const totalInstallments = instMonthly * instMonths;
 
     // Annual expenses
@@ -1093,17 +1130,31 @@
     const extrasAnnual = p.extraAnnual + p.ownerMaintAnnual;
     const annualExpenses = serviceFeesAnnual + vacancyLossAnnual + mgmtFeesAnnual + extrasAnnual;
 
-    // Net annual income (steady-state, after all installments paid)
+    // Net annual income (steady-state, after all installments paid and property handed over)
     const netAnnualIncome = p.annualRent - annualExpenses;
 
     // Cash paid now: downpayment + acquisition costs (DLD + agent due at transfer)
     const cashNow = downPayment + acquisitionOneTime;
 
-    // Net rental cashflow during installment period
-    const netDuringInstallments = instMonths > 0 ? netAnnualIncome * (instMonths / 12) : 0;
+    // ── Handover-aware installment split ──
+    // Pre-handover: installments paid while property is not yet delivered (zero rent)
+    const preHandoverInstMonths = Math.min(handoverMonths, instMonths);
+    const preHandoverCost = instMonthly * preHandoverInstMonths;
 
-    // Extra cash needed beyond what rent covers during installment period
-    const extraCashForInstallments = Math.max(0, totalInstallments - Math.max(0, netDuringInstallments));
+    // Lost rent: total rent forgone during handover wait
+    const lostRent = (p.annualRent / 12) * handoverMonths;
+
+    // Post-handover: remaining installment months once property is delivered (rent offsets)
+    const postHandoverInstMonths = Math.max(0, instMonths - handoverMonths);
+    const postHandoverInstTotal = instMonthly * postHandoverInstMonths;
+    const netDuringPostHandover = postHandoverInstMonths > 0 ? netAnnualIncome * (postHandoverInstMonths / 12) : 0;
+    const extraCashPostHandover = Math.max(0, postHandoverInstTotal - Math.max(0, netDuringPostHandover));
+
+    // Total extra cash = pre-handover installments (pure cash out) + post-handover shortfall
+    const extraCashForInstallments = preHandoverCost + extraCashPostHandover;
+
+    // For backward compatibility, total net during installments (used in display)
+    const netDuringInstallments = netDuringPostHandover; // only post-handover has rent
 
     // Total cash invested out of pocket by end of installments
     const totalCashByEnd = cashNow + extraCashForInstallments;
@@ -1112,12 +1163,28 @@
     const grossROI = ((p.annualRent / (purchasePrice + acquisitionOneTime)) * 100);
     const netROI = totalCashByEnd > 0 ? ((netAnnualIncome / totalCashByEnd) * 100) : 0;
 
-    // Monthly view during installment period
+    // Monthly view during installment period (post-handover, when you have rent)
     const monthlyNetBeforeInstall = netAnnualIncome / 12;
     const monthlyNetAfterInstall = monthlyNetBeforeInstall - instMonthly;
 
     // Informational deposits
     const rentDeposit = p.annualRent * (p.furnished ? 0.10 : 0.05);
+
+    // ── 5-Year Hold Analysis ──
+    // How many months of actual rental in the hold period?
+    const rentalMonthsIn5yr = Math.max(0, HOLD_MONTHS - handoverMonths);
+    // Total net rental income earned over the hold period
+    const fiveYrNetIncome = netAnnualIncome * (rentalMonthsIn5yr / 12);
+    // Installments that fall within the hold period
+    const instMonthsIn5yr = Math.min(instMonths, HOLD_MONTHS);
+    const instPaidIn5yr = instMonthly * instMonthsIn5yr;
+    // Total cash deployed over 5 years = upfront + installments within window
+    const totalCapitalDeployed = cashNow + instPaidIn5yr;
+    // 5yr cash-on-cash return: how much rental income you earned per dirham deployed
+    // Installments build equity (you own the property), so they are NOT subtracted from income
+    const fiveYrROI = totalCapitalDeployed > 0 ? (fiveYrNetIncome / totalCapitalDeployed) * 100 : 0;
+    // Effective annual return (annualized)
+    const fiveYrAnnualReturn = fiveYrROI / HOLD_YEARS;
 
     // Validation warnings
     const warnings = [];
@@ -1128,9 +1195,12 @@
       warnings.push("Downpayment + total installments (" + fmt(p.downPayment + totalInstallments) +
         " AED) seems less than purchase price (" + fmt(purchasePrice) + " AED) \u2014 verify your numbers.");
     }
-    if (monthlyNetAfterInstall < 0 && instMonths > 0) {
+    if (monthlyNetAfterInstall < 0 && postHandoverInstMonths > 0) {
       warnings.push("Property bleeds " + fmt(Math.abs(monthlyNetAfterInstall)) +
-        " AED/month during the installment period.");
+        " AED/month during post-handover installments.");
+    }
+    if (preHandoverCost > 0) {
+      warnings.push("You will pay " + fmt(preHandoverCost) + " AED in installments before handover with no rental income.");
     }
 
     return {
@@ -1139,8 +1209,14 @@
       annualExpenses,
       netAnnualIncome,
       totalInstallments,
+      handoverMonths,
+      preHandoverInstMonths,
+      preHandoverCost,
+      postHandoverInstMonths,
       netDuringInstallments,
+      extraCashPostHandover,
       extraCashForInstallments,
+      lostRent,
       totalCashByEnd,
       grossROI,
       netROI,
@@ -1151,15 +1227,22 @@
       mgmtFeesAnnual,
       extrasAnnual,
       rentDeposit,
+      // 5-year hold metrics
+      rentalMonthsIn5yr,
+      fiveYrNetIncome,
+      instPaidIn5yr,
+      totalCapitalDeployed,
+      fiveYrROI,
+      fiveYrAnnualReturn,
       warnings
     };
   }
 
-  // Quick ROI for library summary (returns null if data incomplete)
+  // Quick 5yr ROI for library summary (returns null if data incomplete)
   function quickROI(p) {
     if (!p.purchasePrice || !p.annualRent || !p.sizeSqft) return null;
     const r = calc(p);
-    return r.netROI;
+    return r.fiveYrROI;
   }
 
   // ═══════════════════════════════════════════════
@@ -1194,7 +1277,7 @@
   // ═══════════════════════════════════════════════
   function libraryCardTemplate(p) {
     const roi = quickROI(p);
-    const roiStr = roi !== null ? fmt2(roi) + "%" : "--";
+    const roiStr = roi !== null ? fmt2(roi) + "% <small style=\"font-weight:400;opacity:.6;\">5yr</small>" : "--";
     const meta = [];
     if (p.purchasePrice) meta.push(fmt(p.purchasePrice) + " AED");
     if (p.annualRent) meta.push("Rent " + fmt(p.annualRent));
@@ -1298,7 +1381,7 @@
           '</label>' +
           '<span class="toggle-label">Furnished</span>' +
         '</div>' +
-        '<div class="section-label">Installments (Post-Handover)</div>' +
+        '<div class="section-label">Payment Plan &amp; Handover</div>' +
         '<div class="row2">' +
           '<div class="field">' +
             '<label>Downpayment (AED)</label>' +
@@ -1311,17 +1394,24 @@
         '</div>' +
         '<div class="row2">' +
           '<div class="field">' +
-            '<label>Remaining Months</label>' +
+            '<label>Remaining Installment Months</label>' +
             '<input inputmode="numeric" value="' + (p.instMonths || '') + '" oninput="update(' + p.id + ',\'instMonths\',this.value)" placeholder="e.g. 37">' +
           '</div>' +
+          '<div class="field">' +
+            '<label>Months to Handover</label>' +
+            '<input inputmode="numeric" value="' + (p.handoverMonths || '') + '" oninput="update(' + p.id + ',\'handoverMonths\',this.value)" placeholder="0 = ready now">' +
+          '</div>' +
+        '</div>' +
+        '<div class="section-label">Deposits (Refundable)</div>' +
+        '<div class="row2">' +
           '<div class="field">' +
             '<label>DEWA Deposit (AED)</label>' +
             '<input inputmode="numeric" value="' + p.dewaDeposit + '" oninput="update(' + p.id + ',\'dewaDeposit\',this.value)">' +
           '</div>' +
-        '</div>' +
-        '<div class="field" style="max-width:calc(50% - 5px);">' +
-          '<label>Chiller Deposit (AED)</label>' +
-          '<input inputmode="numeric" value="' + p.chillerDeposit + '" oninput="update(' + p.id + ',\'chillerDeposit\',this.value)">' +
+          '<div class="field">' +
+            '<label>Chiller Deposit (AED)</label>' +
+            '<input inputmode="numeric" value="' + p.chillerDeposit + '" oninput="update(' + p.id + ',\'chillerDeposit\',this.value)">' +
+          '</div>' +
         '</div>' +
         '<div id="out-' + p.id + '"></div>' +
       '</div>' +
@@ -1454,9 +1544,9 @@
 
       var r = calc(p);
 
-      // Track best ROI
-      if (r.netROI > bestROI) {
-        bestROI = r.netROI;
+      // Track best by 5-year ROI
+      if (r.fiveYrROI > bestROI) {
+        bestROI = r.fiveYrROI;
         bestId = p.id;
       }
 
@@ -1471,21 +1561,56 @@
       }
 
       var installSection = "";
-      if (r.totalInstallments > 0) {
-        installSection =
-          '<div class="result-divider"></div>' +
-          '<div class="result-row">' +
-            '<span class="result-label">Total installments remaining</span>' +
-            '<span class="result-value">' + fmt(r.totalInstallments) + ' AED</span>' +
-          '</div>' +
-          '<div class="result-row">' +
-            '<span class="result-label">Net cashflow during installments</span>' +
-            '<span class="result-value ' + (r.netDuringInstallments >= 0 ? 'positive' : 'negative') + '">' + fmt(r.netDuringInstallments) + ' AED</span>' +
-          '</div>' +
-          '<div class="result-row">' +
-            '<span class="result-label">Extra cash needed</span>' +
-            '<span class="result-value ' + (r.extraCashForInstallments > 0 ? 'negative' : 'positive') + '">' + fmt(r.extraCashForInstallments) + ' AED</span>' +
-          '</div>';
+      if (r.totalInstallments > 0 || r.handoverMonths > 0) {
+        installSection = '<div class="result-divider"></div>';
+
+        if (r.totalInstallments > 0) {
+          installSection +=
+            '<div class="result-row">' +
+              '<span class="result-label">Total installments remaining</span>' +
+              '<span class="result-value">' + fmt(r.totalInstallments) + ' AED</span>' +
+            '</div>';
+        }
+
+        if (r.handoverMonths > 0) {
+          installSection +=
+            '<div class="result-row">' +
+              '<span class="result-label">Months to handover</span>' +
+              '<span class="result-value">' + r.handoverMonths + ' mo</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Lost rent (pre-handover)</span>' +
+              '<span class="result-value negative">' + fmt(r.lostRent) + ' AED</span>' +
+            '</div>';
+
+          if (r.preHandoverCost > 0) {
+            installSection +=
+              '<div class="result-row">' +
+                '<span class="result-label" style="padding-left:10px;">Installments before handover (' + r.preHandoverInstMonths + ' mo)</span>' +
+                '<span class="result-value negative">' + fmt(r.preHandoverCost) + ' AED</span>' +
+              '</div>';
+          }
+        }
+
+        if (r.postHandoverInstMonths > 0) {
+          installSection +=
+            '<div class="result-row">' +
+              '<span class="result-label">Post-handover installments (' + r.postHandoverInstMonths + ' mo)</span>' +
+              '<span class="result-value">' + fmt(r.postHandoverInstMonths * p.instMonthly) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label" style="padding-left:10px;">Net rent during those months</span>' +
+              '<span class="result-value ' + (r.netDuringInstallments >= 0 ? 'positive' : 'negative') + '">' + fmt(r.netDuringInstallments) + ' AED</span>' +
+            '</div>';
+        }
+
+        if (r.extraCashForInstallments > 0) {
+          installSection +=
+            '<div class="result-row">' +
+              '<span class="result-label">Extra cash needed (total shortfall)</span>' +
+              '<span class="result-value negative">' + fmt(r.extraCashForInstallments) + ' AED</span>' +
+            '</div>';
+        }
       }
 
       var monthlyAfterSection = "";
@@ -1535,6 +1660,36 @@
               '<span class="result-value highlight">' + fmt2(r.netROI) + '%</span>' +
             '</div>' +
             '<div class="result-divider"></div>' +
+            '<div class="result-row" style="background:var(--surface2); border-radius:6px; padding:8px 10px; margin:4px 0 2px;">' +
+              '<span class="result-label"><b>' + HOLD_YEARS + '-Year Hold Analysis</b></span>' +
+              '<span class="result-value"></span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Rental months in ' + HOLD_YEARS + ' years</span>' +
+              '<span class="result-value">' + r.rentalMonthsIn5yr + ' of ' + HOLD_MONTHS + ' mo</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Net rental income (' + HOLD_YEARS + ' yr)</span>' +
+              '<span class="result-value ' + (r.fiveYrNetIncome >= 0 ? 'positive' : 'negative') + '">' + fmt(r.fiveYrNetIncome) + ' AED</span>' +
+            '</div>' +
+            (r.instPaidIn5yr > 0 ?
+            '<div class="result-row">' +
+              '<span class="result-label">Installments paid in ' + HOLD_YEARS + ' yr</span>' +
+              '<span class="result-value">' + fmt(r.instPaidIn5yr) + ' AED</span>' +
+            '</div>' : '') +
+            '<div class="result-row">' +
+              '<span class="result-label">Total capital deployed</span>' +
+              '<span class="result-value">' + fmt(r.totalCapitalDeployed) + ' AED</span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label"><b>' + HOLD_YEARS + '-Year ROI</b></span>' +
+              '<span class="result-value highlight"><b>' + fmt2(r.fiveYrROI) + '%</b></span>' +
+            '</div>' +
+            '<div class="result-row">' +
+              '<span class="result-label">Annualized return</span>' +
+              '<span class="result-value">' + fmt2(r.fiveYrAnnualReturn) + '%/yr</span>' +
+            '</div>' +
+            '<div class="result-divider"></div>' +
             '<div class="result-row">' +
               '<span class="result-label">Monthly net (before installment)</span>' +
               '<span class="result-value ' + (r.monthlyNetBeforeInstall >= 0 ? 'positive' : 'negative') + '">' + fmt(r.monthlyNetBeforeInstall) + ' AED</span>' +
@@ -1557,7 +1712,11 @@
         cashNow: r.cashNow,
         totalCashEnd: r.totalCashByEnd,
         monthlyAfter: r.monthlyNetAfterInstall,
-        monthlyBefore: r.monthlyNetBeforeInstall
+        monthlyBefore: r.monthlyNetBeforeInstall,
+        fiveYrNetIncome: r.fiveYrNetIncome,
+        fiveYrROI: r.fiveYrROI,
+        totalCapitalDeployed: r.totalCapitalDeployed,
+        fiveYrAnnualReturn: r.fiveYrAnnualReturn
       });
     }
 
@@ -1567,8 +1726,8 @@
       if (card) card.classList.toggle("winner", selected[j].id === bestId && rows.length > 1);
     }
 
-    // Sort by net ROI descending
-    rows.sort(function(a, b) { return b.netROI - a.netROI; });
+    // Sort by 5-year ROI descending (best long-term return first)
+    rows.sort(function(a, b) { return b.fiveYrROI - a.fiveYrROI; });
 
     if (rows.length === 0) {
       compareSection.style.display = "none";
@@ -1585,12 +1744,13 @@
         '<div class="compare-card ' + (k === 0 && rows.length > 1 ? 'rank-1' : '') + '">' +
           '<span class="rank-badge">#' + (k + 1) + '</span>' +
           '<div class="cc-name">' + escHtml(rr.name) + '</div>' +
-          '<div class="cc-row"><span class="cc-label">Net ROI (on cash)</span><span class="cc-val accent">' + fmt2(rr.netROI) + '%</span></div>' +
-          '<div class="cc-row"><span class="cc-label">Gross ROI</span><span class="cc-val">' + fmt2(rr.grossROI) + '%</span></div>' +
+          '<div class="cc-row"><span class="cc-label"><b>' + HOLD_YEARS + '-Year ROI</b></span><span class="cc-val accent"><b>' + fmt2(rr.fiveYrROI) + '%</b></span></div>' +
+          '<div class="cc-row"><span class="cc-label">' + HOLD_YEARS + '-Year Net Income</span><span class="cc-val ' + (rr.fiveYrNetIncome >= 0 ? 'positive' : 'negative') + '">' + fmt(rr.fiveYrNetIncome) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Total capital deployed</span><span class="cc-val">' + fmt(rr.totalCapitalDeployed) + ' AED</span></div>' +
+          '<div class="cc-row"><span class="cc-label">Annualized return</span><span class="cc-val">' + fmt2(rr.fiveYrAnnualReturn) + '%/yr</span></div>' +
+          '<div class="cc-row" style="border-top:1px solid var(--border); padding-top:6px; margin-top:4px;"><span class="cc-label">Net ROI (steady-state)</span><span class="cc-val">' + fmt2(rr.netROI) + '%</span></div>' +
           '<div class="cc-row"><span class="cc-label">Net annual income</span><span class="cc-val">' + fmt(rr.netAnnual) + ' AED</span></div>' +
           '<div class="cc-row"><span class="cc-label">Cash needed now</span><span class="cc-val">' + fmt(rr.cashNow) + ' AED</span></div>' +
-          '<div class="cc-row"><span class="cc-label">Total cash invested</span><span class="cc-val">' + fmt(rr.totalCashEnd) + ' AED</span></div>' +
-          '<div class="cc-row"><span class="cc-label">Monthly net (before inst.)</span><span class="cc-val">' + fmt(rr.monthlyBefore) + ' AED</span></div>' +
           '<div class="cc-row"><span class="cc-label">Monthly net (after inst.)</span><span class="cc-val">' + fmt(rr.monthlyAfter) + ' AED</span></div>' +
         '</div>';
     }
@@ -1601,11 +1761,12 @@
       '<table class="compare-table">' +
         '<thead><tr>' +
           '<th>Property</th>' +
-          '<th>Net ROI</th>' +
-          '<th>Gross ROI</th>' +
+          '<th>' + HOLD_YEARS + 'yr ROI</th>' +
+          '<th>' + HOLD_YEARS + 'yr Income</th>' +
+          '<th>Capital Deployed</th>' +
+          '<th>Annual Return</th>' +
+          '<th>Net ROI (steady)</th>' +
           '<th>Net Annual</th>' +
-          '<th>Cash Now</th>' +
-          '<th>Total Cash</th>' +
           '<th>Monthly After Inst.</th>' +
         '</tr></thead>' +
         '<tbody>';
@@ -1614,11 +1775,12 @@
       tableHtml +=
         '<tr class="' + (m === 0 && rows.length > 1 ? 'best-row' : '') + '">' +
           '<td>' + escHtml(rw.name) + '</td>' +
-          '<td><b>' + fmt2(rw.netROI) + '%</b></td>' +
-          '<td>' + fmt2(rw.grossROI) + '%</td>' +
+          '<td><b>' + fmt2(rw.fiveYrROI) + '%</b></td>' +
+          '<td>' + fmt(rw.fiveYrNetIncome) + '</td>' +
+          '<td>' + fmt(rw.totalCapitalDeployed) + '</td>' +
+          '<td>' + fmt2(rw.fiveYrAnnualReturn) + '%</td>' +
+          '<td>' + fmt2(rw.netROI) + '%</td>' +
           '<td>' + fmt(rw.netAnnual) + '</td>' +
-          '<td>' + fmt(rw.cashNow) + '</td>' +
-          '<td>' + fmt(rw.totalCashEnd) + '</td>' +
           '<td>' + fmt(rw.monthlyAfter) + '</td>' +
         '</tr>';
     }
