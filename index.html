@@ -688,13 +688,73 @@
   </div>
 
   <div class="info-box">
-    <b>How installments are handled:</b> We estimate net rental cashflow during the
-    installment period and offset it against the total remaining installments.
-    Any shortfall becomes "Extra cash needed". <b>Net ROI after installments</b>
-    uses the effective total cash you invested out-of-pocket by the end of installments.
+    <b style="font-size:14px; display:block; margin-bottom:10px; color:var(--accent);">How Everything Is Calculated</b>
+
+    <b>Acquisition Costs (one-time)</b><br>
+    DLD (Dubai Land Department) fee: 4% of purchase price<br>
+    Agent/broker commission: 2% of purchase price<br>
+    Total acquisition = Purchase Price &times; 6%
+
     <br><br>
-    <b>Note:</b> Deposits (DEWA, chiller, rent security) are shown for info only &mdash; they
-    are refundable and not counted in ROI calculations.
+    <b>Cash Needed Now</b><br>
+    If no downpayment is entered, the property is assumed fully paid.<br>
+    Cash Now = Downpayment (or full Purchase Price) + Acquisition Costs
+
+    <br><br>
+    <b>Annual Expenses</b><br>
+    Service fees = Size (sqft) &times; Service Fee per sqft/year<br>
+    Vacancy loss = (Annual Rent &divide; 12) &times; Vacancy months<br>
+    Management fees = Annual Rent &times; Management %<br>
+    Extras = Extra Annual Fees + Owner Maintenance<br>
+    Total Annual Expenses = Service fees + Vacancy loss + Management fees + Extras
+
+    <br><br>
+    <b>Net Annual Income</b><br>
+    Net Annual Income = Annual Rent &minus; Total Annual Expenses<br>
+    This is your steady-state yearly profit after all recurring costs, once installments are done.
+
+    <br><br>
+    <b>Installment Period (Post-Handover)</b><br>
+    Total installments remaining = Monthly Installment &times; Remaining Months<br>
+    Net cashflow during installments = Net Annual Income &times; (Remaining Months &divide; 12)<br>
+    Extra cash needed = max(0, Total Installments &minus; Net Cashflow During Installments)<br>
+    This is the out-of-pocket shortfall if rent doesn't fully cover installments.
+
+    <br><br>
+    <b>Total Cash Invested</b><br>
+    Total Cash Invested = Cash Now + Extra Cash Needed<br>
+    This represents everything you paid out-of-pocket by the end of the installment period.
+
+    <br><br>
+    <b>Gross ROI</b><br>
+    Gross ROI = Annual Rent &divide; (Purchase Price + Acquisition Costs) &times; 100<br>
+    A quick top-line yield before any expenses.
+
+    <br><br>
+    <b>Net ROI (on cash invested)</b><br>
+    Net ROI = Net Annual Income &divide; Total Cash Invested &times; 100<br>
+    Your real return on the actual cash you put in. This is the key metric.
+
+    <br><br>
+    <b>Monthly Net (before installment)</b><br>
+    Monthly Net Before = Net Annual Income &divide; 12<br>
+    What you pocket each month in steady state.
+
+    <br><br>
+    <b>Monthly Net (after installment)</b><br>
+    Monthly Net After = Monthly Net Before &minus; Monthly Installment<br>
+    Your actual monthly cashflow while still paying installments. Negative means you're topping up.
+
+    <br><br>
+    <b>Deposits (refundable)</b><br>
+    Rent security deposit = Annual Rent &times; 5% (unfurnished) or 10% (furnished)<br>
+    DEWA deposit and Chiller deposit are entered directly.<br>
+    These are shown for info only &mdash; they are refundable and not counted in ROI.
+
+    <br><br>
+    <b>Installment Warning</b><br>
+    If Downpayment + Total Installments is less than 95% of Purchase Price, a warning appears
+    to help you catch typos. A separate warning shows if monthly cashflow is negative during installments.
   </div>
 
   <!-- Toast -->
